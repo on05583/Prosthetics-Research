@@ -1,5 +1,5 @@
 # EMG Sensing and Prosthetics Research, led by Dr. Kyle Johnsen at the UGA Virtual Experience Lab
-=================================================================================================
+-----------------------------------------------------------
 ### Jacob Kilburn, Arm Mohamed, Omar Naqib, Rishab Seshadri
 ___________________________________________________________
 
