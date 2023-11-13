@@ -30,8 +30,10 @@ loop = asyncio.get_event_loop()
 loop.run_until_complete(main(address))
 '''
 import asyncio
+import sys
 import threading
 
+import aioconsole
 import keyboard
 
 from bleak import BleakClient, BLEDevice
@@ -43,36 +45,48 @@ write_uuid = "2d30c083-f39f-4ce6-923f-3484ea480596"
 
 # tester = BLEDevice(address=address)
 
-def callback(sender, data):
-    # print(data)
+async def callback(sender, data):
+    if (len(data) == 20 and data[19] != 0):
+        full_int = int.from_bytes(data, 'big')
+
+        mask = (1 << 19) - 1  # 19 bits mask
+        num_bits = len(data) * 8
+
+        // TODO: fix noise filtering below
+
+        extracted_bits = (full_int >> (num_bits - 27)) & mask
+        if extracted_bits * 0.001869917138805 < 800 or extracted_bits * 0.001869917138805 > 1000:
+            print(extracted_bits * 0.001869917138805)
+
+        extracted_bits = (full_int >> (num_bits - 103)) & mask # skip 84 + 19
+        if extracted_bits * 0.001869917138805 < 800 or extracted_bits * 0.001869917138805 > 1000:
+            print(extracted_bits * 0.001869917138805)
+    # print(extracted_bits * 0.001869917138805)
+    #    print(data[0])
+
+    '''
     for i in range(len(data)):
         if data[i] == 0xC9:
             if i + 2 < len(data):
                 combined_bytes = data[i+1] << 16 | data[i+2] << 8 | data[i+3]
                 channel_1_value = combined_bytes & 0x7FFFF
-                channel_1_value *= 0.001869917138805 
-                prin(channel_1_value)
-                
-def prin(val):
-    while True:
-        if val != -1:
-            print(f"Channel 1 Impedance Value (as int): {val}")
-    
+                print(f"Channel 1 Impedance Value (as int): {channel_1_value}")
+                '''
+
 async def main(address):
     async with BleakClient(address) as client:
-#        connected = await client.is_connected()
- #       if connected:
         await client.start_notify(read_uuid, callback)
 
         await client.write_gatt_char(write_uuid,  bytes("b", "ascii")) 
-                    
-        thread = threading.Thread(target=prin)
-        thread.daemon = True
-        thread.start()
 
         while True:
-            if keyboard.is_pressed('q'):  # if key 'q' is pressed
+            input_str = await aioconsole.ainput("Press 'q' to quit: \n")
+            if input_str == 'q':
+
+                await client.write_gatt_char(write_uuid,  bytes("s", "ascii")) 
+                await client.disconnect()
                 break
+
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main(address))
