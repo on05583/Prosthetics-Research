@@ -1,11 +1,12 @@
 import asyncio
 
-from bleak import discover
+from bleak import BleakScanner, discover
 
 
 async def main():
-    devices = await discover()
+    devices = await BleakScanner.discover()
     for d in devices:
-        print(d)
+        print(d.name)
+
 
 asyncio.run(main())

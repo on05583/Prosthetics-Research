@@ -1,21 +1,46 @@
 import argparse
-import time
+import asyncio
+import queue
 import sys
+import threading
+import time
 from pprint import pprint
+
+import aioconsole
 import keyboard
 import numpy as np
-import threading
-import queue
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
+from brainflow.board_shim import (
+    BoardIds,
+    BoardShim,
+    BrainFlowInputParams,
+    BrainFlowPresets,
+)
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from PyQt5.QtCore import QTimer
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
 
-from brainflow.board_shim import BoardShim, BrainFlowInputParams, BoardIds, BrainFlowPresets
+from bleak import BleakClient, BleakScanner, BLEDevice
 
 data_queue = queue.Queue()
 
+class IntegerHolder:
+    def __init__(self, value=0):
+        self._value = value
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, new_value):
+        if isinstance(new_value, int):
+            self._value = new_value
+        else:
+            raise ValueError("Value must be an integer")
+        
 class ApplicationWindow(QMainWindow):
+    
     def __init__(self):
         super().__init__()
 
@@ -33,80 +58,12 @@ class ApplicationWindow(QMainWindow):
         self.timer.timeout.connect(self.update_plot)
         self.timer.start()
 
-        # Thread for data retrieval
-        thread = threading.Thread(target=self.data_retrieval)
-        thread.daemon = True
-        thread.start()
-
     def update_plot(self):
-        for i in range (0, 20):
+        for i in range(0, 10):
             if not data_queue.empty():
                 data = data_queue.get()
                 self.canvas.plot_data(data)
-            else:
-                break
 
-            
-    def data_retrieval(self):
-        board_id = 1
-        serial_port = "COM5"
-
-        BoardShim.enable_dev_board_logger()
-
-        parser = argparse.ArgumentParser()
-        # use docs to check which parameters are required for specific board, e.g. for Cyton - set serial port
-        parser.add_argument('--timeout', type=int, help='timeout for device discovery or connection', required=False,
-                            default=0)
-        parser.add_argument('--ip-port', type=int, help='ip port', required=False, default=0)
-        parser.add_argument('--ip-protocol', type=int, help='ip protocol, check IpProtocolType enum', required=False,
-                            default=0)
-        parser.add_argument('--ip-address', type=str, help='ip address', required=False, default='')
-        parser.add_argument('--serial-port', type=str, help='serial port', required=False, default='')
-        parser.add_argument('--mac-address', type=str, help='mac address', required=False, default='')
-        parser.add_argument('--other-info', type=str, help='other info', required=False, default='')
-        parser.add_argument('--serial-number', type=str, help='serial number', required=False, default='')
-        parser.add_argument('--board-id', type=int, help='board id, check docs to get a list of supported boards',
-                            required=False)
-        parser.add_argument('--file', type=str, help='file', required=False, default='')
-        parser.add_argument('--master-board', type=int, help='master board id for streaming and playback boards',
-                            required=False, default=BoardIds.NO_BOARD)
-        args = parser.parse_args()
-
-        args.board_id = 1
-        args.serial_port = "COM5"
-        params = BrainFlowInputParams()
-        params.ip_port = 0
-        params.serial_port = args.serial_port
-        params.mac_address = ''
-        params.other_info = ''
-        params.serial_number = ''
-        params.ip_address = ''
-        params.ip_protocol = 0
-        params.timeout = 0
-        params.file = ''
-        params.master_board = BoardIds.NO_BOARD
-        
-        sample_num = 0
-
-        board = BoardShim(args.board_id, params)
-        board.prepare_session()
-        board.start_stream ()
-        time.sleep(1)
-
-        # TODO: Set up plot for frequency
-
-        while True:
-            data = board.get_board_data()  # get all data and remove it from internal buffer
-            if data.any(): 
-                for y in data[1]:
-                    sample_num += 1
-                    x_val, y_val = sample_num / 200, y
-                    if sample_num % 2 == 0:
-                        data_queue.put((x_val, y_val))
-            if keyboard.is_pressed('q'):
-                board.stop_stream()
-                board.release_session()
-                return
 
 class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=200):
@@ -119,7 +76,7 @@ class MplCanvas(FigureCanvas):
         self.window_size = 200
 
         self.axes.set_autoscale_on(False)
-        self.axes.set_ylim(10000, -10000) 
+        self.axes.set_ylim(1000, -1000) 
 
     def plot_data(self, data):
         x, y = data
@@ -139,17 +96,80 @@ class MplCanvas(FigureCanvas):
 
         self.draw_idle()  # Use draw_idle instead of draw for more efficient updates
 
-    # pprint(BoardShim.get_board_descr(board_id))
-    # data = board.get_current_board_data (256) 
-    # get latest 256 packages or less, doesnt remove them from internal buffer
-    # data = board.get_board_data()  # get all data and remove it from internal buffer
+def launch():
+    app = QApplication(sys.argv)
+    w = ApplicationWindow()
+    w.show()
+    sys.exit(app.exec_())
 
+
+address = ""
+read_uuid = "2d30c082-f39f-4ce6-923f-3484ea480596"
+write_uuid = "2d30c083-f39f-4ce6-923f-3484ea480596"
+SCALE = 0.001869917138805
+count = IntegerHolder(0)
+
+async def callback(sender, data):
+
+    if (len(data) == 20 and data[19] != 0):
+        full_int = int.from_bytes(data, 'big')
+
+        mask = (1 << 19) - 1  # 19 bits mask
+        num_bits = len(data) * 8
+
+        # TODO: fix noise filtering below
+
+        extracted_bits = (full_int >> (num_bits - 27)) & mask
+        extracted_bits *= SCALE
+        if extracted_bits < 800 or extracted_bits > 1000:
+            count.value += 1
+            if count.value % 5 == 0:
+                data_queue.put((count.value / 200, extracted_bits))    
+            
+
+        extracted_bits = (full_int >> (num_bits - 103)) & mask # skip 84 + 19
+        extracted_bits *= SCALE
+        if extracted_bits < 800 or extracted_bits > 1000:
+            count.value += 1
+            if count.value % 5 == 0:
+                data_queue.put((count.value / 200, extracted_bits))
+
+async def main(address):
     
-    # board.stop_stream()
-    # board.release_session()
+    devices = await BleakScanner.discover()
+    for d in devices:
+        if d.name == "Ganglion-2b18" or d.name == "Simblee":
+            address = d.address
+            break
 
-    # print(data)
-app = QApplication(sys.argv)
-w = ApplicationWindow()
-w.show()
-sys.exit(app.exec_())
+    if address == "":
+        print("Ganglion not found.")
+        return
+    else:
+        print("Ganglion connected.")
+    
+    async with BleakClient(address) as client:
+        await client.start_notify(read_uuid, callback)
+    
+        print("Ganglion sending data...")
+
+        await client.write_gatt_char(write_uuid,  bytes("b", "ascii")) 
+
+        print("Data stream started.")
+
+        while True:
+            input_str = await aioconsole.ainput("Press 'q' to quit: \n")
+            if input_str == 'q':
+                print("Data stream ending...")
+                await client.write_gatt_char(write_uuid,  bytes("s", "ascii")) 
+                await client.disconnect()
+                print("Client disconnected.")
+                break
+
+
+thread = threading.Thread(target=launch)
+thread.daemon = True
+thread.start()
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main(address))

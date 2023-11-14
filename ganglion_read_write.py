@@ -66,5 +66,3 @@ async def main(address):
 
 loop = asyncio.get_event_loop()
 loop.run_until_complete(main(address))
-
-# DA:23:8D:D7:85:97: Ganglion-2b18
