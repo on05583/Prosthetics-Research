@@ -3,5 +3,5 @@
 ### Jacob Kilburn, Arm Mohamed, Omar Naqib, Rishab Seshadri
 ___________________________________________________________
 
-`pip install keyboard brainflow pyqt5 bleak`
+`pip install keyboard brainflow pyqt5 bleak aioconsole`
 
