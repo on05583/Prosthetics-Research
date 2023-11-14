@@ -24,6 +24,26 @@ from bleak import BleakClient, BleakScanner, BLEDevice
 
 data_queue = queue.Queue()
 
+class TimerThread(threading.Thread):
+    def __init__(self):
+        super().__init__()
+        self.start_time = None
+        self.elapsed_time = 0
+        self.running = False
+
+    def run(self):
+        self.running = True
+        self.start_time = time.time()
+        while self.running:
+            self.elapsed_time = time.time() - self.start_time
+            time.sleep(0.01)  # small sleep to prevent high CPU usage
+
+    def stop(self):
+        self.running = False
+
+    def get_elapsed_time(self):
+        return self.elapsed_time
+
 class IntegerHolder:
     def __init__(self, value=0):
         self._value = value
@@ -108,6 +128,7 @@ read_uuid = "2d30c082-f39f-4ce6-923f-3484ea480596"
 write_uuid = "2d30c083-f39f-4ce6-923f-3484ea480596"
 SCALE = 0.001869917138805
 count = IntegerHolder(0)
+timer_thread = TimerThread()
 
 async def callback(sender, data):
 
@@ -124,7 +145,7 @@ async def callback(sender, data):
         if extracted_bits < 800 or extracted_bits > 1000:
             count.value += 1
             if count.value % 5 == 0:
-                data_queue.put((count.value / 200, extracted_bits))    
+                data_queue.put((timer_thread.get_elapsed_time(), extracted_bits))    
             
 
         extracted_bits = (full_int >> (num_bits - 103)) & mask # skip 84 + 19
@@ -132,7 +153,7 @@ async def callback(sender, data):
         if extracted_bits < 800 or extracted_bits > 1000:
             count.value += 1
             if count.value % 5 == 0:
-                data_queue.put((count.value / 200, extracted_bits))
+                data_queue.put((timer_thread.get_elapsed_time(), extracted_bits))
 
 async def main(address):
     
@@ -155,7 +176,8 @@ async def main(address):
 
         await client.write_gatt_char(write_uuid,  bytes("b", "ascii")) 
 
-        print("Data stream started.")
+        print("Data stream started.") 
+        timer_thread.start()
 
         while True:
             input_str = await aioconsole.ainput("Press 'q' to quit: \n")
@@ -163,6 +185,7 @@ async def main(address):
                 print("Data stream ending...")
                 await client.write_gatt_char(write_uuid,  bytes("s", "ascii")) 
                 await client.disconnect()
+                timer_thread.stop()
                 print("Client disconnected.")
                 break
 
