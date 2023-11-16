@@ -7,6 +7,7 @@ import time
 from pprint import pprint
 
 import aioconsole
+import brainflow as brainflow
 import keyboard
 import numpy as np
 from brainflow.board_shim import (
@@ -15,6 +16,7 @@ from brainflow.board_shim import (
     BrainFlowInputParams,
     BrainFlowPresets,
 )
+from brainflow.data_filter import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 from nptyping import NDArray
@@ -24,7 +26,9 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
 from bleak import BleakClient, BleakScanner, BLEDevice
 
 data_queue = queue.Queue()
-nd_array_points = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+nd_array_points = np.array([0.0])
+nd_array_times = np.array([0.0])
+filter = DataFilter()
 
 
 class TimerThread(threading.Thread):
@@ -100,7 +104,7 @@ class MplCanvas(FigureCanvas):
         self.window_size = 200
 
         self.axes.set_autoscale_on(False)
-        self.axes.set_ylim(1000, -1000)
+        self.axes.set_ylim(-1000, 1000)
 
     def plot_data(self, data):
         x, y = data
@@ -134,42 +138,81 @@ write_uuid = "2d30c083-f39f-4ce6-923f-3484ea480596"
 SCALE = 0.001869917138805
 count = IntegerHolder(0)
 timer_thread = TimerThread()
+refresh_rate = 20
 
 
 async def callback(sender, data):
     global nd_array_points
+    global nd_array_times
     if len(data) == 20 and data[19] != 0:
         full_int = int.from_bytes(data, "big")
 
         mask = (1 << 19) - 1  # 19 bits mask
         num_bits = len(data) * 8
 
-        # TODO: fix noise filtering below
-
         extracted_bits = (full_int >> (num_bits - 27)) & mask
         extracted_bits *= SCALE
 
-        if extracted_bits < 800 or extracted_bits > 1000:
-            nd_array_points = np.insert(
-                nd_array_points, nd_array_points.size - 1, [extracted_bits]
-            )
-            if nd_array_points.size > 500:
-                nd_array_points = nd_array_points[1:]
-            count.value += 1
+        if extracted_bits < 900 or extracted_bits > 1000:
             if count.value % 5 == 0:
-                data_queue.put((timer_thread.get_elapsed_time(), extracted_bits))
+                nd_array_points = np.insert(
+                    nd_array_points, nd_array_points.size - 1, [extracted_bits]
+                )
+                nd_array_times = np.insert(
+                    nd_array_times,
+                    nd_array_times.size - 1,
+                    [timer_thread.get_elapsed_time()],
+                )
+                if nd_array_points.size > refresh_rate:
+                    """
+                    filter.perform_lowpass(
+                        nd_array_points,  # data
+                        200,  # sampling rate
+                        150,  # cutoff frequency
+                        1,  # filter order
+                        FilterTypes.CHEBYSHEV_TYPE_1,  # filter type
+                        0,  # Chebyshev filter ripple value
+                    )
+                    """
+                    for i in range(0, refresh_rate):
+                        data_queue.put((nd_array_times[i], nd_array_points[i]))
+
+                    nd_array_points = np.array([0.0])
+                    nd_array_times = np.array([0.0])
+            count.value += 1
+        # if count.value % 5 == 0:
+        # data_queue.put((timer_thread.get_elapsed_time(), extracted_bits))
 
         extracted_bits = (full_int >> (num_bits - 103)) & mask  # skip 84 + 19
         extracted_bits *= SCALE
-        if extracted_bits < 800 or extracted_bits > 1000:
-            nd_array_points = np.insert(
-                nd_array_points, nd_array_points.size - 1, [extracted_bits]
-            )
-            if nd_array_points.size > 500:
-                nd_array_points = nd_array_points[1:]
-            count.value += 1
+        if extracted_bits < 900 or extracted_bits > 1000:
             if count.value % 5 == 0:
-                data_queue.put((timer_thread.get_elapsed_time(), extracted_bits))
+                nd_array_points = np.insert(
+                    nd_array_points, nd_array_points.size - 1, [extracted_bits]
+                )
+                nd_array_times = np.insert(
+                    nd_array_times,
+                    nd_array_times.size - 1,
+                    [timer_thread.get_elapsed_time()],
+                )
+                if nd_array_points.size > refresh_rate:
+                    """
+                    filter.perform_lowpass(
+                        nd_array_points,  # data
+                        200,  # sampling rate
+                        150,  # cutoff frequency
+                        1,  # filter order
+                        FilterTypes.CHEBYSHEV_TYPE_1,  # filter type
+                        0,  # Chebyshev filter ripple value
+                    )"""
+                    for i in range(0, refresh_rate):
+                        data_queue.put((nd_array_times[i], nd_array_points[i]))
+
+                    nd_array_points = np.array([0.0])
+                    nd_array_times = np.array([0.0])
+            count.value += 1
+        # if count.value % 5 == 0:
+        # data_queue.put((timer_thread.get_elapsed_time(), extracted_bits))
 
 
 async def main(address):
