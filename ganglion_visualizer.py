@@ -17,12 +17,15 @@ from brainflow.board_shim import (
 )
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
+from nptyping import NDArray
 from PyQt5.QtCore import QTimer
 from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
 
 from bleak import BleakClient, BleakScanner, BLEDevice
 
 data_queue = queue.Queue()
+nd_array_points = np.array([0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+
 
 class TimerThread(threading.Thread):
     def __init__(self):
@@ -44,6 +47,7 @@ class TimerThread(threading.Thread):
     def get_elapsed_time(self):
         return self.elapsed_time
 
+
 class IntegerHolder:
     def __init__(self, value=0):
         self._value = value
@@ -58,9 +62,9 @@ class IntegerHolder:
             self._value = new_value
         else:
             raise ValueError("Value must be an integer")
-        
+
+
 class ApplicationWindow(QMainWindow):
-    
     def __init__(self):
         super().__init__()
 
@@ -89,14 +93,14 @@ class MplCanvas(FigureCanvas):
     def __init__(self, parent=None, width=5, height=4, dpi=200):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
-        self.line, = self.axes.plot([], [], 'r-')
+        (self.line,) = self.axes.plot([], [], "r-")
         super().__init__(self.fig)
 
         self.x_data, self.y_data = [], []
         self.window_size = 200
 
         self.axes.set_autoscale_on(False)
-        self.axes.set_ylim(1000, -1000) 
+        self.axes.set_ylim(1000, -1000)
 
     def plot_data(self, data):
         x, y = data
@@ -105,8 +109,8 @@ class MplCanvas(FigureCanvas):
         self.y_data.append(y)
 
         if len(self.x_data) > self.window_size:
-            self.x_data = self.x_data[-self.window_size:]
-            self.y_data = self.y_data[-self.window_size:]
+            self.x_data = self.x_data[-self.window_size :]
+            self.y_data = self.y_data[-self.window_size :]
 
         self.line.set_data(self.x_data, self.y_data)
         self.axes.set_xlim(max(0, self.x_data[0]), self.x_data[-1] + 1)
@@ -115,6 +119,7 @@ class MplCanvas(FigureCanvas):
         # self.axes.autoscale_view(True, True, True)  # Autoscale
 
         self.draw_idle()  # Use draw_idle instead of draw for more efficient updates
+
 
 def launch():
     app = QApplication(sys.argv)
@@ -130,10 +135,11 @@ SCALE = 0.001869917138805
 count = IntegerHolder(0)
 timer_thread = TimerThread()
 
-async def callback(sender, data):
 
-    if (len(data) == 20 and data[19] != 0):
-        full_int = int.from_bytes(data, 'big')
+async def callback(sender, data):
+    global nd_array_points
+    if len(data) == 20 and data[19] != 0:
+        full_int = int.from_bytes(data, "big")
 
         mask = (1 << 19) - 1  # 19 bits mask
         num_bits = len(data) * 8
@@ -142,21 +148,31 @@ async def callback(sender, data):
 
         extracted_bits = (full_int >> (num_bits - 27)) & mask
         extracted_bits *= SCALE
-        if extracted_bits < 800 or extracted_bits > 1000:
-            count.value += 1
-            if count.value % 5 == 0:
-                data_queue.put((timer_thread.get_elapsed_time(), extracted_bits))    
-            
 
-        extracted_bits = (full_int >> (num_bits - 103)) & mask # skip 84 + 19
-        extracted_bits *= SCALE
         if extracted_bits < 800 or extracted_bits > 1000:
+            nd_array_points = np.insert(
+                nd_array_points, nd_array_points.size - 1, [extracted_bits]
+            )
+            if nd_array_points.size > 500:
+                nd_array_points = nd_array_points[1:]
             count.value += 1
             if count.value % 5 == 0:
                 data_queue.put((timer_thread.get_elapsed_time(), extracted_bits))
 
+        extracted_bits = (full_int >> (num_bits - 103)) & mask  # skip 84 + 19
+        extracted_bits *= SCALE
+        if extracted_bits < 800 or extracted_bits > 1000:
+            nd_array_points = np.insert(
+                nd_array_points, nd_array_points.size - 1, [extracted_bits]
+            )
+            if nd_array_points.size > 500:
+                nd_array_points = nd_array_points[1:]
+            count.value += 1
+            if count.value % 5 == 0:
+                data_queue.put((timer_thread.get_elapsed_time(), extracted_bits))
+
+
 async def main(address):
-    
     devices = await BleakScanner.discover()
     for d in devices:
         if d.name == "Ganglion-2b18" or d.name == "Simblee":
@@ -168,22 +184,22 @@ async def main(address):
         return
     else:
         print("Ganglion connected.")
-    
+
     async with BleakClient(address) as client:
         await client.start_notify(read_uuid, callback)
-    
+
         print("Ganglion sending data...")
 
-        await client.write_gatt_char(write_uuid,  bytes("b", "ascii")) 
+        await client.write_gatt_char(write_uuid, bytes("b", "ascii"))
 
-        print("Data stream started.") 
+        print("Data stream started.")
         timer_thread.start()
 
         while True:
             input_str = await aioconsole.ainput("Press 'q' to quit: \n")
-            if input_str == 'q':
+            if input_str == "q":
                 print("Data stream ending...")
-                await client.write_gatt_char(write_uuid,  bytes("s", "ascii")) 
+                await client.write_gatt_char(write_uuid, bytes("s", "ascii"))
                 await client.disconnect()
                 timer_thread.stop()
                 print("Client disconnected.")
