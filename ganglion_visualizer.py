@@ -26,6 +26,7 @@ from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QWidget
 from bleak import BleakClient, BleakScanner, BLEDevice
 
 data_queue = queue.Queue()
+freq_queue = queue.Queue()
 nd_array_points = np.array([0.0])
 nd_array_times = np.array([0.0])
 filter = DataFilter()
@@ -74,31 +75,46 @@ class ApplicationWindow(QMainWindow):
 
         self.main_widget = QWidget(self)
         layout = QVBoxLayout(self.main_widget)
-        self.canvas = MplCanvas(self, width=5, height=4, dpi=100)
-        layout.addWidget(self.canvas)
-        self.main_widget.setLayout(layout)
+        self.canvas1 = MplCanvas(self, width=5, height=4, dpi=100, plot_type="line")
+        layout.addWidget(self.canvas1)
 
+        self.canvas2 = MplCanvas(self, width=5, height=4, dpi=100, plot_type="point")
+        layout.addWidget(self.canvas2)
+        self.canvas2.axes.set_ylim(-10000, 10000)
+        self.canvas2.axes.set_xlim(0, 100)
+
+        self.main_widget.setLayout(layout)
         self.setCentralWidget(self.main_widget)
-        self.setWindowTitle("Real-Time Plot")
+        self.setWindowTitle("Real-Time Plots")
 
         self.timer = QTimer(self)
         self.timer.setInterval(5)
-        self.timer.timeout.connect(self.update_plot)
+        self.timer.timeout.connect(self.update_plots)
         self.timer.start()
 
-    def update_plot(self):
-        for i in range(0, 10):
+    def update_plots(self):
+        for i in range(0, 20):
             if not data_queue.empty():
                 data = data_queue.get()
-                self.canvas.plot_data(data)
+                self.canvas1.plot_data(data)
+        if not freq_queue.empty():
+            self.canvas2.plot_data_freq(freq_queue.get())
 
 
 class MplCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=200):
+    def __init__(self, parent=None, width=5, height=4, dpi=200, plot_type="line"):
         self.fig = Figure(figsize=(width, height), dpi=dpi)
         self.axes = self.fig.add_subplot(111)
         (self.line,) = self.axes.plot([], [], "r-")
         super().__init__(self.fig)
+
+        self.plot_type = plot_type
+
+        if self.plot_type == "line":
+            (self.line,) = self.axes.plot([], [], "r-")
+        else:
+            (self.scatter,) = self.axes.plot([], [], "ro")  # 'ro' for red circles
+            (self.line,) = self.axes.plot([], [], "r-")  # 'r-' for a red line
 
         self.x_data, self.y_data = [], []
         self.window_size = 200
@@ -116,13 +132,36 @@ class MplCanvas(FigureCanvas):
             self.x_data = self.x_data[-self.window_size :]
             self.y_data = self.y_data[-self.window_size :]
 
-        self.line.set_data(self.x_data, self.y_data)
-        self.axes.set_xlim(max(0, self.x_data[0]), self.x_data[-1] + 1)
+        if self.plot_type == "line":
+            self.line.set_data(self.x_data, self.y_data)
+            self.axes.set_xlim(max(0, self.x_data[0]), self.x_data[-1] + 1)
 
-        self.axes.relim()  # Recalculate limits
-        # self.axes.autoscale_view(True, True, True)  # Autoscale
+        self.axes.relim()
+        self.draw_idle()
 
-        self.draw_idle()  # Use draw_idle instead of draw for more efficient updates
+    def plot_data_freq(self, data):
+        frequencies, magnitudes = data
+
+        if self.plot_type == "point":
+            self.scatter.set_data(frequencies, magnitudes)
+            self.line.set_data(frequencies, magnitudes)
+
+        self.draw_idle()
+        frequencies, magnitudes = data
+
+        """
+        self.x_data = []
+        self.y_data = []
+
+        # self.scatter.set_offsets(np.column_stack((frequencies, magnitudes)))
+
+        self.axes.set_ylim(min(magnitudes), max(magnitudes))
+        self.scatter.set_data(frequencies, magnitudes)
+        self.line.set_data(frequencies, magnitudes)
+
+        self.axes.relim()
+        self.draw_idle()
+        """
 
 
 def launch():
@@ -174,6 +213,22 @@ async def callback(sender, data):
                         0,  # Chebyshev filter ripple value
                     )
                     """
+                    fft_result = np.fft.fft(nd_array_points)
+                    frequencies = np.fft.fftfreq(len(nd_array_points), 1 / 200)
+                    magnitudes = np.abs(fft_result)
+
+                    fft_result = np.fft.fft(nd_array_points)
+
+                    half_index = len(frequencies) // 2
+                    positive_frequencies = frequencies[:half_index]
+                    positive_magnitudes = magnitudes[:half_index]
+                    sorted_indices = np.argsort(positive_frequencies)
+                    sorted_frequencies = positive_frequencies[sorted_indices]
+                    sorted_magnitudes = positive_magnitudes[sorted_indices]
+
+                    # Now put the sorted data into the queue
+                    freq_queue.put((sorted_frequencies, sorted_magnitudes))
+
                     for i in range(0, refresh_rate):
                         data_queue.put((nd_array_times[i], nd_array_points[i]))
 
@@ -205,6 +260,22 @@ async def callback(sender, data):
                         FilterTypes.CHEBYSHEV_TYPE_1,  # filter type
                         0,  # Chebyshev filter ripple value
                     )"""
+                    fft_result = np.fft.fft(nd_array_points)
+                    frequencies = np.fft.fftfreq(len(nd_array_points), 1 / 200)
+                    magnitudes = np.abs(fft_result)
+
+                    fft_result = np.fft.fft(nd_array_points)
+
+                    half_index = len(frequencies) // 2
+                    positive_frequencies = frequencies[:half_index]
+                    positive_magnitudes = magnitudes[:half_index]
+                    sorted_indices = np.argsort(positive_frequencies)
+                    sorted_frequencies = positive_frequencies[sorted_indices]
+                    sorted_magnitudes = positive_magnitudes[sorted_indices]
+
+                    # Now put the sorted data into the queue
+                    freq_queue.put((sorted_frequencies, sorted_magnitudes))
+
                     for i in range(0, refresh_rate):
                         data_queue.put((nd_array_times[i], nd_array_points[i]))
 
@@ -246,7 +317,7 @@ async def main(address):
                 await client.disconnect()
                 timer_thread.stop()
                 print("Client disconnected.")
-                break
+                return
 
 
 thread = threading.Thread(target=launch)
