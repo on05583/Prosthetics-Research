@@ -88,17 +88,21 @@ class ApplicationWindow(QMainWindow):
         self.setWindowTitle("Real-Time Plots")
 
         self.timer = QTimer(self)
-        self.timer.setInterval(5)
+        self.timer.setInterval(20)
         self.timer.timeout.connect(self.update_plots)
         self.timer.start()
 
     def update_plots(self):
-        for i in range(0, 20):
-            if not data_queue.empty():
-                data = data_queue.get()
-                self.canvas1.plot_data(data)
-        if not freq_queue.empty():
-            self.canvas2.plot_data_freq(freq_queue.get())
+        # for i in range(0, 100):
+        # if not data_queue.empty():
+        # data = data_queue.get()
+        # self.canvas1.plot_data(data)
+
+        for i in range(0, 500):
+            if not freq_queue.empty():
+                self.canvas2.plot_data_freq(freq_queue.get())
+            else:
+                break
 
 
 class MplCanvas(FigureCanvas):
@@ -177,8 +181,8 @@ write_uuid = "2d30c083-f39f-4ce6-923f-3484ea480596"
 SCALE = 0.001869917138805
 count = IntegerHolder(0)
 timer_thread = TimerThread()
-refresh_rate = 100
-overlap = 50
+refresh_rate = 200
+overlap = 100
 
 
 async def callback(sender, data):
@@ -233,8 +237,8 @@ async def callback(sender, data):
                 # Now put the sorted data into the queue
                 freq_queue.put((sorted_frequencies, sorted_magnitudes))
 
-                for i in range(overlap, refresh_rate - overlap):
-                    data_queue.put((nd_array_times[i], nd_array_points[i]))
+                #                for i in range(overlap, refresh_rate - overlap):
+                # data_queue.put((nd_array_times[i], nd_array_points[i]))
 
                 nd_array_points = nd_array_points[overlap:]
                 nd_array_times = nd_array_times[overlap:]
@@ -280,8 +284,8 @@ async def callback(sender, data):
                 # Now put the sorted data into the queue
                 freq_queue.put((sorted_frequencies, sorted_magnitudes))
 
-                for i in range(overlap, refresh_rate - overlap):
-                    data_queue.put((nd_array_times[i], nd_array_points[i]))
+                # for i in range(overlap, refresh_rate - overlap):
+                # data_queue.put((nd_array_times[i], nd_array_points[i]))
 
                 nd_array_points = nd_array_points[overlap:]
                 nd_array_times = nd_array_times[overlap:]
