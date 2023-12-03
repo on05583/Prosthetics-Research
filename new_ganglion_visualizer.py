@@ -77,7 +77,6 @@ client = connect_mqtt()
 
 
 def publish(client, message):
-    msg_count = 1
     while True:
         time.sleep(0.001)
         result = client.publish(topic, message)
@@ -149,6 +148,13 @@ async def connect(address):
                 quit()
 
 
+def get_input(inp):
+    inp -= 3
+    if inp <= 0:
+        return 0
+    return inp / 2
+
+
 async def callback(sender, data):
     global nd_array_points
     global nd_array_times
@@ -217,12 +223,14 @@ async def callback(sender, data):
                         print("...")
                     """
 
+                    # wet elec: 3
+                    # dry elec: 3.68
                     if input_value > 3:
                         print("FLEX")
                     else:
                         print("...")
 
-                # publish(client, input_value)
+                    publish(client, get_input(input_value))
 
                 nd_array_points = nd_array_points[1:]
 
@@ -279,11 +287,15 @@ async def callback(sender, data):
 
                     """
 
+                    # wet elec: 3
+                    # dry elec: 3.68
+
                     if input_value > 3:
                         print("FLEX")
                     else:
                         print("...")
-                # publish(client, input_value)
+
+                    publish(client, get_input(input_value))
 
                 nd_array_points = nd_array_points[1:]
 
