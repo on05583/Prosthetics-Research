@@ -6,6 +6,7 @@ You can run the following code using:
 
 """
 import asyncio
+import math
 import queue
 import threading
 import time
@@ -61,7 +62,7 @@ def connect_mqtt():
 
     # Set Connecting Client ID
     client = mqtt_client.Client(client_id)
-    # client.username_pw_set(username, password)
+    client.username_pw_set(username, password)
     client.on_connect = on_connect
     client.connect(broker, port)
     return client
@@ -69,23 +70,19 @@ def connect_mqtt():
 
 broker = "eduoracle.ugavel.com"
 port = 1883
-topic = "ganglion-data"
-client_id = f"python-mqtt-{681}"
+topic = "ganglion/data"
+client_id = "rishab"
 username = "giiuser"
 password = "giipassword"
 client = connect_mqtt()
 
 
 def publish(client, message):
-    while True:
-        time.sleep(0.001)
-        result = client.publish(topic, message)
-        # result: [0, 1]
-        status = result[0]
-        if status == 0:
-            print(f"Send `{message}` to topic `{topic}`")
-        else:
-            print(f"Failed to send message to topic {topic}")
+    result = client.publish(topic, message)
+    # result: [0, 1]
+    status = result[0]
+    if status != 0:
+        print(f"Failed to send message to topic {topic}")
 
 
 def update_data(new_frequencies, new_magnitudes):
@@ -114,6 +111,10 @@ freq_queue = queue.Queue()
 nd_array_points = np.array([0.0])
 start_index = 0
 stop_index = 0
+DRY_ELEC = 2.9
+WET_ELEC = 3.68
+
+wet = False
 
 
 async def connect(address):
@@ -149,10 +150,15 @@ async def connect(address):
 
 
 def get_input(inp):
-    inp -= 3
-    if inp <= 0:
+    if wet:
+        inp -= WET_ELEC
+    else:
+        inp -= DRY_ELEC
+
+    if inp < 0:
         return 0
-    return inp / 2
+
+    return inp / 6
 
 
 async def callback(sender, data):
@@ -185,6 +191,8 @@ async def callback(sender, data):
                     200,  # sampling rate
                     NoiseTypes.FIFTY_AND_SIXTY,  # frequency
                 )
+
+                # filter.perform_rolling_filter(nd_array_points, 2, AggOperations.MEAN)
                 """
                 filter.perform_bandstop(
                     nd_array_points,  # data
@@ -206,7 +214,7 @@ async def callback(sender, data):
                 freq_queue.put((frequencies[:half_index], magnitudes[:half_index]))
 
                 if len(frequencies) > 0:
-                    start_index = binary_search(frequencies, 15)
+                    start_index = binary_search(frequencies, 13)
                     stop_index = binary_search(frequencies, 40)
 
                     sum_of_values = 0
@@ -223,14 +231,14 @@ async def callback(sender, data):
                         print("...")
                     """
 
-                    # wet elec: 3
-                    # dry elec: 3.68
+                    """
                     if input_value > 3:
                         print("FLEX")
                     else:
                         print("...")
+                    """
 
-                    publish(client, get_input(input_value))
+                publish(client, get_input(input_value))
 
                 nd_array_points = nd_array_points[1:]
 
@@ -249,6 +257,8 @@ async def callback(sender, data):
                     200,  # sampling rate
                     NoiseTypes.FIFTY_AND_SIXTY,  # frequency
                 )
+
+                # filter.perform_rolling_filter(nd_array_points, 2, AggOperations.MEAN)
                 """
                 filter.perform_bandstop(
                     nd_array_points,  # data
@@ -270,10 +280,9 @@ async def callback(sender, data):
                 freq_queue.put((frequencies[:half_index], magnitudes[:half_index]))
 
                 if len(frequencies) > 0:
-                    start_index = binary_search(frequencies, 15)
+                    start_index = binary_search(frequencies, 13)
                     stop_index = binary_search(frequencies, 40)
 
-                    sum_of_values = 0
                     for i in range(start_index, stop_index):
                         sum_of_values = magnitudes[i]
 
@@ -287,15 +296,14 @@ async def callback(sender, data):
 
                     """
 
-                    # wet elec: 3
-                    # dry elec: 3.68
-
+                    """
                     if input_value > 3:
                         print("FLEX")
                     else:
                         print("...")
+                    """
 
-                    publish(client, get_input(input_value))
+                publish(client, get_input(input_value))
 
                 nd_array_points = nd_array_points[1:]
 
