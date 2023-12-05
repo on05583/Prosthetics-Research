@@ -7,4 +7,3 @@ To run the code, run the following commands:
 
 `$ pip install keyboard brainflow bokeh bleak aioconsole`
 `$ bokeh serve --show new_ganglion_visualizer.py`
-

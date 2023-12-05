@@ -106,14 +106,17 @@ address = ""
 read_uuid = "2d30c082-f39f-4ce6-923f-3484ea480596"
 write_uuid = "2d30c083-f39f-4ce6-923f-3484ea480596"
 SCALE = 0.0001869917138805
-num_fft_points = 100
+num_fft_points = 50
 freq_queue = queue.Queue()
 nd_array_points = np.array([0.0])
 start_index = 0
 stop_index = 0
-DRY_ELEC = 2.9
+DRY_ELEC = 22  # 2.9
+
+# TODO: TUNE
 WET_ELEC = 3.68
 
+# TODO: TUNE
 wet = False
 
 
@@ -150,15 +153,21 @@ async def connect(address):
 
 
 def get_input(inp):
+    # TODO: TUNE
     if wet:
-        inp -= WET_ELEC
+        inp /= 10
+        inp -= 0.6
     else:
-        inp -= DRY_ELEC
+        inp /= 10
+        inp -= 0.6
 
     if inp < 0:
         return 0
 
-    return inp / 6
+    if inp >= 1:
+        return 1
+
+    return inp
 
 
 async def callback(sender, data):
@@ -219,24 +228,12 @@ async def callback(sender, data):
 
                     sum_of_values = 0
                     for i in range(start_index, stop_index):
-                        sum_of_values = magnitudes[i]
+                        if wet:
+                            sum_of_values = abs(magnitudes[i] - WET_ELEC)
+                        else:
+                            sum_of_values = abs(magnitudes[i] - DRY_ELEC)
 
                     input_value = sum_of_values / (stop_index - start_index)
-                    """
-                    if input_value > 1.8 and input_value <= 2.2:
-                        print("FLEX 1")
-                    elif input_value > 2.8:
-                        print("FLEX 2")
-                    else:
-                        print("...")
-                    """
-
-                    """
-                    if input_value > 3:
-                        print("FLEX")
-                    else:
-                        print("...")
-                    """
 
                 publish(client, get_input(input_value))
 
@@ -283,25 +280,12 @@ async def callback(sender, data):
                     start_index = binary_search(frequencies, 13)
                     stop_index = binary_search(frequencies, 40)
 
-                    for i in range(start_index, stop_index):
-                        sum_of_values = magnitudes[i]
+                    if wet:
+                        sum_of_values = abs(magnitudes[i] - WET_ELEC)
+                    else:
+                        sum_of_values = abs(magnitudes[i] - DRY_ELEC)
 
                     input_value = sum_of_values / (stop_index - start_index)
-
-                    """
-                    if input_value > 1.8 and input_value <= 2.2:
-                        print("FLEX 1")
-                    elif input_value > 2.8:
-                        print("FLEX 2")
-
-                    """
-
-                    """
-                    if input_value > 3:
-                        print("FLEX")
-                    else:
-                        print("...")
-                    """
 
                 publish(client, get_input(input_value))
 
