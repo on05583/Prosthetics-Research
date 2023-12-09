@@ -52,8 +52,8 @@ This program makes use of an MQTT broker to publish the data to Unity, and an MQ
 will be necessary for the setup. Change the values within `data_visualizer.py` near the
 `# MQTT Broker` comment in order to publish the data. 
 
-The consants provided need to be tuned depending on each device and setup. The current values are
-set up to work with dry and wet electordes, but may need to be increased or decreased depending on the
+The constants provided need to be tuned depending on each device and setup. The current values are
+set up to work with dry and wet electrodes, but may need to be increased or decreased depending on the
 wanted sensitivity of the power produced by signal. This can be changed with the `DRY_ELEC` and `WET_ELEC`
 constants, as well as the `get_input()` function.
 
