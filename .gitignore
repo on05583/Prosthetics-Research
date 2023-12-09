@@ -7,139 +7,39 @@ __pycache__/
 *.so
 
 # Distribution / packaging
-.Python
 env/
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
 *.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
 
 # Installer logs
 pip-log.txt
-pip-delete-this-directory.txt
 
 # Unit test / coverage reports
 htmlcov/
 .tox/
-.nox/
 .coverage
 .coverage.*
 .cache
-nosetests.xml
-coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
 
-# Translations
-*.mo
-*.pot
-
-# Django stuff:
-*.log
-.static_storage/
-.media/
-local_settings.py
-
-# Flask stuff:
-instance/
-.webassets-cache
-
-# Scrapy stuff:
-.scrapy
-
-# Sphinx documentation
-docs/_build/
-
-# PyBuilder
-target/
-
 # Jupyter Notebook
 .ipynb_checkpoints
 
-# pyenv
-.python-version
-
-# celery beat schedule file
-celerybeat-schedule
-
-# SageMath parsed files
-*.sage.py
-
-# Environments
+# Environment files
 .env
 .venv
 venv/
 ENV/
-env.bak/
-venv.bak/
-
-# Spyder project settings
-.spyderproject
-.spyproject
-
-# Rope project settings
-.ropeproject
-
-# mkdocs documentation
-/site
-
-# mypy
-.mypy_cache/
-
-# Personal IDE settings
-.idea/
-.vs/
-.vscode/
-*.sublime*
-*.sublime-workspace
 
 # IDE - Visual Studio Code
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/
 
 # IDE - JetBrains
 .idea/
-*.iws
-*.iml
-*.ipr
-.idea_modules/
-# User-specific stuff
-.idea/**/workspace.xml
-.idea/**/tasks.xml
-.idea/dictionaries
-# Sensitive or high-churn files
-.idea/**/dataSources/
-.idea/**/dataSources.ids
-.idea/**/dataSources.xml
-.idea/**/dataSources.local.xml
-.idea/**/sqlDataSources.xml
-.idea/**/dynamic.xml
-.idea/**/uiDesigner.xml
-# Gradle
-.idea/**/gradle.xml
-.idea/**/libraries
-# Mongo Explorer plugin
-.idea/**/mongoSettings.xml
 
 # OS - macOS
 .DS_Store
@@ -162,15 +62,9 @@ Temporary Items
 # OS - Windows
 Thumbs.db
 ehthumbs.db
-ehthumbs_vista.db
 *.stackdump
 [Dd]esktop.ini
 $RECYCLE.BIN/
-*.cab
-*.msi
-*.msm
-*.msp
-*.lnk
 
 # OS - Linux
 *~
@@ -179,23 +73,16 @@ $RECYCLE.BIN/
 .Trash-*
 .nfs*
 
-# SublimeText
-*.tmlanguage.cache
-*.tmPreferences.cache
-*.stTheme.cache
-*.sublime-workspace
+# Python environment
+poetry.lock
+pyvenv.cfg
 
-# Other files and folders
-examples/notcommit/
-[Bb]in/
-[Oo]bj/
-*.personal
-*.pem
+# Others
+.editorconfig
+.gitattributes
+.readthedocs.yml
 
-# Lock files (Comment out if you wish to commit lock files such as poetry.lock)
-# poetry.lock
+# Folders
+resources/
 
 # Add any additional files or folders specific to your project below
-# e.g., config files, test outputs, logs
-# config.json
-# test_output/
