@@ -14,9 +14,11 @@ an older version, follow the [pip installation steps](https://pip.pypa.io/en/sta
 Open an instance of your terminal within the project's directory (Prosthetics-Research)
 
 This project makes use of several Python libraries that can be installed with the command below:
+
 `$ python3 -m pip install aioconsole numpy bleak bokeh brainflow paho-mqtt`
 
 To run the project, run the following command:
+
 `$ bokeh serve --show data_visualizer.py`
 
 ___________________________________________________________
