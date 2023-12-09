@@ -7,7 +7,9 @@ ___________________________________________________________
 
 ## Hardware
 [OpenBCI Ganglion Board](https://shop.openbci.com/products/ganglion-board?utm_source=Google-Ads&utm_medium=g&utm_campaign=New_User_Prospecting&utm_adgroudp=New_User_Prospecting_-_dynamic_ad_group&utm_term=&gad_source=1&gclid=CjwKCAiAvdCrBhBREiwAX6-6Uu9az7JFnPIeuNssjLoS34EtB_0Akm6FYNOwoDYpc4Nf-gGQWIKaOhoCRF0QAvD_BwE)
+
 [Electrode cables](https://shop.openbci.com/products/emg-ecg-snap-electrode-cables?variant=37345654079646)
+
 Purchase a minimum of 3 of dry or wet snap-on electrodes. Results will be better with a wet electrode.
 
 Connect the positive electrode to the top of channel 1, and the negative to the bottom of channel 1. Connect the
