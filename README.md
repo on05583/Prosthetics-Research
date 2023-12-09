@@ -22,6 +22,8 @@ computation for the voltage readings.
 This program makes use of Bleak's Bluetooth Low Energy library to bypass the required dongle. As such, the 
 device running the program __must have Bluetooth capability__.
 
+-----------------------------------------------------------
+
 ## Installation
 
 The installation of this program requires the use of Python3, the installation of which
@@ -41,6 +43,19 @@ This project makes use of several Python libraries that can be installed with th
 To run the project, run the following command:
 
 `$ bokeh serve --show data_visualizer.py`
+
+-----------------------------------------------------------
+
+## Software
+
+This program makes use of an MQTT broker to publish the data to Unity, and an MQTT Broker
+will be necessary for the setup. Change the values within `data_visualizer.py` near the
+`# MQTT Broker` comment in order to publish the data. 
+
+The consants provided need to be tuned depending on each device and setup. The current values are
+set up to work with dry and wet electordes, but may need to be increased or decreased depending on the
+wanted sensitivity of the power produced by signal. This can be changed with the `DRY_ELEC` and `WET_ELEC`
+constants, as well as the `get_input()` function.
 
 ___________________________________________________________
 

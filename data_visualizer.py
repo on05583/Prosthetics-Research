@@ -86,7 +86,6 @@ SCALE = 0.0001869917138805
 
 # Handle input value processing
 def get_input(inp):
-    # TODO: TUNE
     if wet:
         inp -= 4.5
         inp /= 9
@@ -270,19 +269,20 @@ freq_queue = queue.Queue()
 nd_array_points = np.array([0.0])
 start_index = 0
 stop_index = 0
+# Tune for a dry electrode constant
 DRY_ELEC = 22
-# TODO: TUNE
+# Tune for a wet electrode constant
 WET_ELEC = 33
-# TODO: TUNE
+# Change based on type of electrode used
 wet = True
 
 # MQTT variables
-broker = "eduoracle.ugavel.com"
-port = 1883
+broker = ""  # Set to broker name
+port = 0  # Set to correct port
 topic = "ganglion/data"
-client_id = "rishab"
-username = "giiuser"
-password = "giipassword"
+client_id = ""  # Set client ID
+username = ""  # Set username
+password = ""  # Set password
 
 
 # Create plot
