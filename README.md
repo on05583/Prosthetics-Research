@@ -1,7 +1,10 @@
-# EMG Sensing and Prosthetics Research, led by Dr. Kyle Johnsen at the UGA Virtual Experience Lab
------------------------------------------------------------
-### Jacob Kilburn, Amr Mohamed, Omar Naqib, Rishab Seshadri
+# EMG Sensing and Prosthetics Research at the UGA Virtual Experience Lab
 ___________________________________________________________
+
+# About
+
+___________________________________________________________
+
 
 # Setup
 
@@ -61,3 +64,5 @@ constants, as well as the `get_input()` function.
 
 ___________________________________________________________
 
+### Authors:
+Dr. Kyle Johnsen, Jacob Kilburn, Amr Mohamed, Omar Naqib, Rishab Seshadri
