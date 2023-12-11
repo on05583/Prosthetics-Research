@@ -13,6 +13,8 @@ ___________________________________________________________
 
 [Electrode cables](https://shop.openbci.com/products/emg-ecg-snap-electrode-cables?variant=37345654079646)
 
+[M5 StickC](https://shop.m5stack.com/products/stick-c)
+
 Purchase a minimum of 3 of dry or wet snap-on electrodes. Results will be better with a wet electrode.
 
 Connect the positive electrode to the top of channel 1, and the negative to the bottom of channel 1. Connect the
@@ -30,6 +32,8 @@ device running the program __must have Bluetooth capability__.
 -----------------------------------------------------------
 
 ## Installation
+
+Setting up the gyroscope will also be included with the installation. This process is fairly simple; the first step will be to download the Arduino IDE from the website with the link included (https://www.arduino.cc/en/software). The next step will be to add the m5StickC to the list of boards in the manager menu. This can be done by pasting the following link into the additional boards manager section (https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json). The next step will be to run the program on the board while installing any required dependencies. Once the program compiles and runs successfully, it will start publishing the gyroscope data over mqtt at which point it is retrievable using the same process as the other data.
 
 The installation of this program requires the use of Python3, the installation of which
 can be found [here](https://realpython.com/installing-python/#how-to-install-python-on-windows).
