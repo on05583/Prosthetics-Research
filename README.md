@@ -3,6 +3,13 @@ ___________________________________________________________
 
 # About
 
+This research project explores the integration of Electromyography (EMG) sensors to capture muscle data for controlling a human-like avatar limb in a Unity environment. The system 
+translates real-time EMG signals into avatar movements. The goal of this project is to provide amputees with a system that will allow them to regain the feeling of their limb and 
+reduce the effects of phantom limb pain (PLP). It uses a minimum of 3 electrodes (dry or wet), two are placed on each of the muscles of interest and one electrode is used as the 
+ground. Electrodes are connected to an OpenBCI Ganglion Board which captures the muscle data from the electrodes. The data is obtained from the ganglion using Bleak's Bluetooth
+Low Energy Library for data processing and filtering. The processed data is published to Unity through an MQTT broker. Once the data is published to Unity it is used to control the
+avatar limb.
+
 ___________________________________________________________
 
 
@@ -65,6 +72,19 @@ The constants provided need to be tuned depending on each device and setup. The 
 set up to work with dry and wet electrodes, but may need to be increased or decreased depending on the
 wanted sensitivity of the power produced by signal. This can be changed with the `DRY_ELEC` and `WET_ELEC`
 constants, as well as the `get_input()` function.
+
+This system requires the use of Unity, the download link can be found [here](https://unity.com/download).
+
+Once Unity is downloaded and an account is made, create a 3D Project. Then copy the folders within the "Unity" folder in this repository to your project. The necessary avatar,
+scripts and files should now be in your project. 
+
+The avatar used in this project was created using [Meta Person Avatar](https://avatarsdk.com/).
+
+You may create your own avatar to be used in your project for free using the website. Once created export the avatar to your local computer. In Unity, move your avatar file into
+the assets folder of your Unity project. The avatar file should appear in your 3D Project. Once uploaded into Unity, select the avatar in the Assets folder. Within the inspector 
+window on the right, ensure Material Creation Mode is set to "Standard (Legacy)", Location is set to "Use External Materials (Legacy)", Naming is set to "Model Name + Model's 
+Material", and search is set to "Recursive-Up".
+
 
 ___________________________________________________________
 
