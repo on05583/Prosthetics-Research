@@ -8,7 +8,7 @@ translates real-time EMG signals into avatar movements. The goal of this project
 reduce the effects of phantom limb pain (PLP). It uses a minimum of 3 electrodes (dry or wet), two are placed on each of the muscles of interest and one electrode is used as the 
 ground. Electrodes are connected to an OpenBCI Ganglion Board which captures the muscle data from the electrodes. The data is obtained from the ganglion using Bleak's Bluetooth
 Low Energy Library for data processing and filtering. The processed data is published to Unity through an MQTT broker. Once the data is published to Unity it is used to control the
-avatar limb.
+avatar limb in real time.
 
 ___________________________________________________________
 
