@@ -3,6 +3,13 @@ ___________________________________________________________
 
 # About
 
+This research project explores the integration of Electromyography (EMG) sensors to capture muscle data for controlling a human-like avatar limb in a Unity environment. The system 
+translates real-time EMG signals into avatar movements. The goal of this project is to provide amputees with a system that will allow them to regain the feeling of their limb and 
+reduce the effects of phantom limb pain (PLP). It uses a minimum of 3 electrodes (dry or wet), two are placed on each of the muscles of interest and one electrode is used as the 
+ground. Electrodes are connected to an OpenBCI Ganglion Board which captures the muscle data from the electrodes. The data is obtained from the ganglion using Bleak's Bluetooth
+Low Energy Library for data processing and filtering. The processed data is published to Unity through an MQTT broker. Once the data is published to Unity it is used to control the
+avatar limb in real time.
+
 ___________________________________________________________
 
 
@@ -12,6 +19,8 @@ ___________________________________________________________
 [OpenBCI Ganglion Board](https://shop.openbci.com/products/ganglion-board?utm_source=Google-Ads&utm_medium=g&utm_campaign=New_User_Prospecting&utm_adgroudp=New_User_Prospecting_-_dynamic_ad_group&utm_term=&gad_source=1&gclid=CjwKCAiAvdCrBhBREiwAX6-6Uu9az7JFnPIeuNssjLoS34EtB_0Akm6FYNOwoDYpc4Nf-gGQWIKaOhoCRF0QAvD_BwE)
 
 [Electrode cables](https://shop.openbci.com/products/emg-ecg-snap-electrode-cables?variant=37345654079646)
+
+[M5 StickC](https://shop.m5stack.com/products/stick-c)
 
 Purchase a minimum of 3 of dry or wet snap-on electrodes. Results will be better with a wet electrode.
 
@@ -30,6 +39,8 @@ device running the program __must have Bluetooth capability__.
 -----------------------------------------------------------
 
 ## Installation
+
+Setting up the gyroscope will also be included with the installation. This process is fairly simple; the first step will be to download the Arduino IDE from the website with the link included (https://www.arduino.cc/en/software). The next step will be to add the m5StickC to the list of boards in the manager menu. This can be done by pasting the following link into the additional boards manager section (https://m5stack.oss-cn-shenzhen.aliyuncs.com/resource/arduino/package_m5stack_index.json). The next step will be to run the program on the board while installing any required dependencies. Once the program compiles and runs successfully, it will start publishing the gyroscope data over mqtt at which point it is retrievable using the same process as the other data.
 
 The installation of this program requires the use of Python3, the installation of which
 can be found [here](https://realpython.com/installing-python/#how-to-install-python-on-windows).
@@ -61,6 +72,19 @@ The constants provided need to be tuned depending on each device and setup. The 
 set up to work with dry and wet electrodes, but may need to be increased or decreased depending on the
 wanted sensitivity of the power produced by signal. This can be changed with the `DRY_ELEC` and `WET_ELEC`
 constants, as well as the `get_input()` function.
+
+This system requires the use of Unity, the download link can be found [here](https://unity.com/download).
+
+Once Unity is downloaded and an account is made, create a 3D Project. Then copy the folders within the "Unity" folder in this repository to your project. The necessary avatar,
+scripts and files should now be in your project. 
+
+The avatar used in this project was created using [Meta Person Avatar](https://avatarsdk.com/).
+
+You may create your own avatar to be used in your project for free using the website. Once created export the avatar to your local computer. In Unity, move your avatar file into
+the assets folder of your Unity project. The avatar file should appear in your 3D Project. Once uploaded into Unity, select the avatar in the Assets folder. Within the inspector 
+window on the right, ensure Material Creation Mode is set to "Standard (Legacy)", Location is set to "Use External Materials (Legacy)", Naming is set to "Model Name + Model's 
+Material", and search is set to "Recursive-Up".
+
 
 ___________________________________________________________
 
