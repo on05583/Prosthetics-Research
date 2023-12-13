@@ -85,7 +85,7 @@ the assets folder of your Unity project. The avatar file should appear in your 3
 window on the right, ensure Material Creation Mode is set to "Standard (Legacy)", Location is set to "Use External Materials (Legacy)", Naming is set to "Model Name + Model's 
 Material", and search is set to "Recursive-Up".
 
-
+For connecting the broker to Unity see:https://workshops.cetools.org/codelabs/CASA0019-unity-mqtt/index.html?index=..%2F..index#0
 ___________________________________________________________
 
 ### Authors:
