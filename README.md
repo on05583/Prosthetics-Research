@@ -36,7 +36,7 @@ computation for the voltage readings.
 Power values are calculated by taking the sum of the absolute value of the magnitudes minus a standard baseline magnitude, over a range of frequencies, which gives us a more consistent “on-off” signal:
 
 $$
-sum = (\sum_{i=start frequency}^{end_frequency} (|magnitude[i] - WET_ELEC|))/(number of frequencies)
+sum = (\sum_{i=start frequency}^{end frequency} (|magnitude[i] - \text(WET_ELEC)|))/(\text(number of frequencies))
 $$
 
 The standard baseline value, or WET_ELEC, needs to be tuned to each individual - you can tune this value by setting up the hardware and wiring, and then finding the value that the line falls to approximately on the left, from 13-40Hz. This is the baseline value.
