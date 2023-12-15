@@ -33,7 +33,7 @@ may disrupt the signal. It is important to isolate the muscle so that changes to
 Connect the ground to a different arm or to another muscle on the body, as it establishes a baseline that is used in the
 computation for the voltage readings.
 
-Power values are calculated by taking the sum of the absolute value of the magnitudes minus a standard baseline magnitude, over a range of frequencies, which gives us a more consistent “on-off” signal:
+Power values are calculated by taking the average of the absolute value of the magnitudes minus a standard baseline magnitude, over a range of frequencies, which gives us a more consistent “on-off” signal:
 
 $$
 input = (\sum_{i=start frequency}^{end frequency} (|magnitude[i] - {\text{WET ELEC}}|))/({\text{number of frequencies}})
