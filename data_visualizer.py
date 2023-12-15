@@ -19,7 +19,7 @@ def connect_mqtt():
         else:
             print("Failed to connect, return code %d\n", rc)
 
-    # Create the MQTT connection and set the username and password
+    # Create the MQTT connection and set the username and password    
     client = mqtt_client.Client(client_id)
     client.username_pw_set(username, password)
     client.on_connect = on_connect
@@ -277,12 +277,12 @@ WET_ELEC = 33
 wet = True
 
 # MQTT variables
-broker = ""  # Set to broker name
-port = 0  # Set to correct port
+broker = "eduoracle.ugavel.com"  # Set to broker name
+port = 1883  # Set to correct port
 topic = "ganglion/data"
-client_id = ""  # Set client ID
-username = ""  # Set username
-password = ""  # Set password
+client_id = "rishab"  # Set client ID
+username = "giiuser"  # Set username
+password = "giipassword"  # Set password
 
 
 # Create plot

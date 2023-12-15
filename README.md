@@ -75,7 +75,7 @@ constants, as well as the `get_input()` function.
 
 This system requires the use of Unity, the download link can be found [here](https://unity.com/download).
 
-Once Unity is downloaded and an account is made, create a 3D Project. Then copy the folders within the "Unity" folder in this repository to your project. The necessary avatar,
+Once Unity is downloaded and an account is made, create a 3D Project. Then copy the folders Assets, Packages, and Project Settings in this repository to your project. The necessary 
 scripts and files should now be in your project. 
 
 The avatar used in this project was created using [Meta Person Avatar](https://avatarsdk.com/).
@@ -85,7 +85,7 @@ the assets folder of your Unity project. The avatar file should appear in your 3
 window on the right, ensure Material Creation Mode is set to "Standard (Legacy)", Location is set to "Use External Materials (Legacy)", Naming is set to "Model Name + Model's 
 Material", and search is set to "Recursive-Up".
 
-For connecting the broker to Unity see:https://workshops.cetools.org/codelabs/CASA0019-unity-mqtt/index.html?index=..%2F..index#0
+For connecting the broker to Unity see: https://workshops.cetools.org/codelabs/CASA0019-unity-mqtt/index.html?index=..%2F..index#0
 ___________________________________________________________
 
 ### Authors:
